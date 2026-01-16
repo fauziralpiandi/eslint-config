@@ -1,2 +1,4 @@
-export { fauziralpiandi, type OptionsConfig } from './factory.js';
-export { fauziralpiandi as default } from './factory.js';
+export type { OptionsConfig } from './factory.js';
+export { config as default } from './factory.js';
+export * from './factory.js';
+export { GLOB } from './glob.js';
