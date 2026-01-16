@@ -6,29 +6,35 @@
     "eslint",
     "eslint-config"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fauziralpiandi/eslint-config.git"
+  },
   "license": "MIT",
   "author": "Fauzira Alpiandi <fauziralpiandi.dev@gmail.com>",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./package.json": "./package.json"
+      "types": "./dist/index.mts",
+      "import": "./dist/index.mjs"
+    }
   },
+  "main": "dist/index.mjs",
+  "types": "dist/index.mts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "format": "prettier --write .",
-    "prepublishOnly": "npm run build",
-    "test": "vitest run",
-    "lint": "eslint --fix .",
-    "typecheck": "tsc --noEmit"
+    "lint": "eslint --fix src",
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run"
+  },
+  "prettier": {
+    "bracketSpacing": true,
+    "singleQuote": true
   },
   "release": {
     "branches": [
@@ -43,7 +49,7 @@
         {
           "assets": [
             "package.json",
-            "package-lock.json"
+            "pnpm-lock.yaml"
           ]
         }
       ],
@@ -53,40 +59,37 @@
   "dependencies": {
     "@eslint/js": "^9.39.2",
     "@stylistic/eslint-plugin": "^5.7.0",
-    "eslint-plugin-jsonc": "^2.21.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-unicorn": "^62.0.0",
-    "globals": "^16.5.0",
-    "jsonc-eslint-parser": "^2.4.2",
-    "typescript-eslint": "^8.50.1"
+    "globals": "^17.0.0",
+    "typescript-eslint": "^8.53.0"
   },
   "devDependencies": {
     "@semantic-release/git": "^10.0.1",
-    "@types/node": "^25.0.3",
-    "prettier": "^3.7.4",
+    "@types/node": "^25.0.9",
+    "prettier": "^3.8.0",
     "semantic-release": "^25.0.2",
-    "tsup": "^8.5.1",
+    "tsdown": "^0.20.0-beta.3",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.17"
   },
   "peerDependencies": {
-    "eslint": "^9.0.0",
-    "typescript": ">=5.0.0"
+    "eslint": "^9",
+    "typescript": ">=5"
   },
   "peerDependenciesMeta": {
     "typescript": {
       "optional": true
     }
   },
+  "engines": {
+    "node": ">=18.18.0"
+  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
-  },
-  "prettier": {
-    "bracketSpacing": true,
-    "singleQuote": true
   }
 }
