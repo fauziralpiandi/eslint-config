@@ -1,11 +1,8 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from 'tsdown';
 
 export default defineConfig({
   entry: ['src/index.ts'],
-  format: ['esm'],
   dts: true,
-  clean: true,
-  minify: false, // Biar kebaca kalau mau debug
   external: [
     'eslint',
     'typescript',
@@ -17,8 +14,6 @@ export default defineConfig({
     'eslint-plugin-react',
     'eslint-plugin-react-hooks',
     'eslint-plugin-jsx-a11y',
-    'eslint-plugin-jsonc',
-    'jsonc-eslint-parser',
     '@eslint/js',
   ],
 });
