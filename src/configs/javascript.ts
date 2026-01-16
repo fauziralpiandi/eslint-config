@@ -5,8 +5,10 @@ import globals from 'globals';
 export function javascript(): Linter.Config[] {
   return [
     {
-      name: 'fauziralpiandi/javascript/setup',
+      name: 'config/javascript/setup',
       languageOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
         globals: {
           ...globals.browser,
           ...globals.es2021,
@@ -16,13 +18,11 @@ export function javascript(): Linter.Config[] {
           ecmaFeatures: {
             jsx: true,
           },
-          ecmaVersion: 2022,
-          sourceType: 'module',
         },
       },
     },
     {
-      name: 'fauziralpiandi/javascript/rules',
+      name: 'config/javascript/rules',
       ...pluginJs.configs.recommended,
     },
   ];
