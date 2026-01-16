@@ -4,7 +4,7 @@ import pluginSimpleImportSort from 'eslint-plugin-simple-import-sort';
 export function imports(): Linter.Config[] {
   return [
     {
-      name: 'fauziralpiandi/imports/rules',
+      name: 'config/imports/rules',
       plugins: {
         'simple-import-sort': pluginSimpleImportSort,
       },
