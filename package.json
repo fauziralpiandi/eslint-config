@@ -50,8 +50,7 @@
         "@semantic-release/git",
         {
           "assets": [
-            "package.json",
-            "pnpm-lock.yaml"
+            "package.json"
           ]
         }
       ],
