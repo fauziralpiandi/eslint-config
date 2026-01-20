@@ -23,7 +23,17 @@ export function config(
   const isTypescript = isPackageExists('typescript');
   const isVitest = isPackageExists('vitest');
   const isReact = isPackageExists('react');
-  const isTailwind = isPackageExists('tailwindcss');
+  // tailwind v4 is built different,
+  // skipping rules for now to avoid the crash.
+  const isTailwindPkg = isPackageExists('tailwindcss');
+  const isTailwindLegacy = isPackageExists('tailwindcss/resolveConfig');
+  const isTailwind = isTailwindPkg && isTailwindLegacy;
+
+  if (isTailwindPkg && !isTailwindLegacy) {
+    console.warn(
+      '[@fauziralpiandi/eslint-config] Disabling Tailwind rules as `eslint-plugin-tailwindcss` is not yet compatible for Tailwind v4.'
+    );
+  }
 
   const { ignores = [], overrides = {} } = options;
 
