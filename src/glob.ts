@@ -1,39 +1,25 @@
-const GLOB_SRC_EXT = '?([cm])[jt]s?(x)';
-
 export const GLOB = {
-  SRC_EXT: GLOB_SRC_EXT,
-  SRC: `**/*.${GLOB_SRC_EXT}`,
-  JS: '**/*.?([cm])js',
-  JSX: '**/*.?([cm])jsx',
-  TS: '**/*.?([cm])ts',
-  TSX: '**/*.?([cm])tsx',
-  JSON: '**/*.json',
-  JSONC: '**/*.jsonc',
-  BENCH: [`**/*.bench.${GLOB_SRC_EXT}`],
-  TESTS: [
-    `**/__tests__/**/*.${GLOB_SRC_EXT}`,
-    `**/*.spec.${GLOB_SRC_EXT}`,
-    `**/*.test.${GLOB_SRC_EXT}`,
-  ],
   EXCLUDE: [
     '**/node_modules',
     '**/dist',
-    '**/package-lock.json',
-    '**/yarn.lock',
-    '**/pnpm-lock.yaml',
-    '**/bun.lockb',
     '**/output',
     '**/coverage',
     '**/temp',
     '**/.temp',
-    '**/tmp',
-    '**/.tmp',
-    '**/.history',
     '**/.next',
-    '**/.vercel',
-    '**/.git',
     '**/.cache',
-    '**/.output',
-    '**/*.min.*',
+    '**/.config',
+    '**/.astro',
+    '**/.vercel',
+    '**/.upm',
+    '**/pnpm-lock.yaml',
+    '**/package-lock.json',
+    '**/*.min.*'
   ],
+  SRC: ['**/*.?([cm])[jt]s?(x)', '**/*.?([cm])[jt]sx'],
+  MISC: [
+    `**/*.spec.?([cm])[jt]s?(x)`,
+    `**/*.test.?([cm])[jt]s?(x)`,
+    `**/*.bench.?([cm])[jt]s?(x)`
+  ]
 };

@@ -1,6 +1,3 @@
-import config from '@fauziralpiandi/eslint-config';
+import config from './dist/index.mjs';
 
-export default config({
-  typescript: true,
-  ignores: ['**/*.test.ts'],
-});
+export default config();

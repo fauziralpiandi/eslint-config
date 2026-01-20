@@ -4,7 +4,8 @@
   "description": "ESLint config for @fauziralpiandi",
   "keywords": [
     "eslint",
-    "eslint-config"
+    "eslint-config",
+    "opinionated"
   ],
   "repository": {
     "type": "git",
@@ -27,14 +28,15 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "format": "prettier --write .",
+    "format": "prettier --write \"**/*.{json,md,yaml}\"",
     "lint": "eslint --fix src",
     "prepublishOnly": "pnpm build",
     "test": "vitest run"
   },
   "prettier": {
     "bracketSpacing": true,
-    "singleQuote": true
+    "singleQuote": true,
+    "trailingComma": "none"
   },
   "release": {
     "branches": [
@@ -57,15 +59,19 @@
     ]
   },
   "dependencies": {
+    "@eslint/compat": "^2.0.1",
     "@eslint/js": "^9.39.2",
     "@stylistic/eslint-plugin": "^5.7.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-perfectionist": "^5.3.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "eslint-plugin-tailwindcss": "^3.18.2",
     "eslint-plugin-unicorn": "^62.0.0",
+    "eslint-plugin-vitest": "^0.5.4",
     "globals": "^17.0.0",
-    "typescript-eslint": "^8.53.0"
+    "typescript-eslint": "^8.53.1"
   },
   "devDependencies": {
     "@semantic-release/git": "^10.0.1",
