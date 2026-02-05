@@ -9,11 +9,16 @@ import globals from 'globals';
 
 import { GLOB } from './glob.js';
 
-export function react(): Linter.Config[] {
+interface ReactOptions {
+  includeA11y: boolean;
+  includeRefresh: boolean;
+}
+
+export function react(options: ReactOptions): Linter.Config[] {
   return [
     {
       name: 'config/react/setup',
-      files: GLOB.SRC,
+      files: GLOB.REACT,
       languageOptions: {
         globals: {
           ...globals.browser
@@ -25,10 +30,16 @@ export function react(): Linter.Config[] {
         }
       },
       plugins: {
-        'jsx-a11y': pluginJsxA11y as ESLint.Plugin,
-        'react': pluginReact,
-        'react-hooks': fixupPluginRules(pluginReactHooks as unknown as ESLint.Plugin),
-        'react-refresh': pluginReactRefresh
+        react: pluginReact,
+        'react-hooks': fixupPluginRules(
+          pluginReactHooks as unknown as ESLint.Plugin
+        ),
+        ...(options.includeA11y
+          ? { 'jsx-a11y': pluginJsxA11y as ESLint.Plugin }
+          : {}),
+        ...(options.includeRefresh
+          ? { 'react-refresh': pluginReactRefresh }
+          : {})
       },
       settings: {
         react: {
@@ -38,12 +49,12 @@ export function react(): Linter.Config[] {
     },
     {
       name: 'config/react/rules',
-      files: GLOB.SRC,
+      files: GLOB.REACT,
       rules: {
         ...pluginReact.configs.recommended.rules,
         ...pluginReact.configs['jsx-runtime'].rules,
         ...pluginReactHooks.configs.recommended.rules,
-        ...pluginJsxA11y.configs.recommended.rules,
+        ...(options.includeA11y ? pluginJsxA11y.configs.recommended.rules : {}),
         'react/prop-types': 'off',
         'react/self-closing-comp': 'warn'
       }

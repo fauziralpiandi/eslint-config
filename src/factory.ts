@@ -4,52 +4,53 @@ import { GLOB } from './glob.js';
 import { javascript } from './javascript.js';
 import { perfectionist } from './perfectionist.js';
 import { react } from './react.js';
-import { stylistic } from './stylistic.js';
-import { tailwind } from './tailwind.js';
 import { typescript } from './typescript.js';
 import { unicorn } from './unicorn.js';
-import { isPackageExists } from './utils.js';
-import { vitest } from './vitest.js';
+import { hasTsconfig, isPackageExists } from './utils.js';
 
 export interface Config {
   ignores?: string[];
   overrides?: Linter.RulesRecord;
+  perfectionist?: boolean;
+  strict?: boolean;
+  unicorn?: boolean;
 }
 
 export function config(
   options: Config = {},
   ...userConfigs: (Linter.Config | Linter.Config[])[]
 ): Linter.Config[] {
-  const isTypescript = isPackageExists('typescript');
-  const isVitest = isPackageExists('vitest');
-  const isReact = isPackageExists('react');
-  // tailwind v4 is built different,
-  // skipping rules for now to avoid the crash.
-  const isTailwindPkg = isPackageExists('tailwindcss');
-  const isTailwindLegacy = isPackageExists('tailwindcss/resolveConfig');
-  const isTailwind = isTailwindPkg && isTailwindLegacy;
+  const {
+    ignores = [],
+    overrides = {},
+    unicorn: enableUnicorn = false,
+    perfectionist: enablePerfectionist = false,
+    strict: enableStrict = false
+  } = options;
 
-  if (isTailwindPkg && !isTailwindLegacy) {
-    console.warn(
-      '[@fauziralpiandi/eslint-config] Disabling Tailwind rules as `eslint-plugin-tailwindcss` is not yet compatible for Tailwind v4.'
-    );
-  }
+  const hasTypescript = isPackageExists('typescript');
+  const hasReact = isPackageExists('react');
+  const hasReactDom = isPackageExists('react-dom');
+  const hasReactRefresh =
+    isPackageExists('react-refresh') || isPackageExists('@vitejs/plugin-react');
 
-  const { ignores = [], overrides = {} } = options;
+  const typeChecked = hasTypescript && hasTsconfig();
 
   const configs: Linter.Config[] = [
     {
       name: 'config/global-ignores',
       ignores: [...GLOB.EXCLUDE, ...ignores]
     },
-    ...javascript(),
-    ...perfectionist(),
-    ...stylistic(),
-    ...unicorn(),
-    ...(isTypescript ? typescript() : []),
-    ...(isVitest ? vitest() : []),
-    ...(isReact ? react() : []),
-    ...(isTailwind ? tailwind() : [])
+    ...javascript({ strict: enableStrict }),
+    ...(hasTypescript ? typescript({ typeChecked, strict: enableStrict }) : []),
+    ...(hasReact
+      ? react({
+          includeA11y: hasReactDom,
+          includeRefresh: hasReactRefresh
+        })
+      : []),
+    ...(enableUnicorn ? unicorn() : []),
+    ...(enablePerfectionist ? perfectionist() : [])
   ];
 
   if (Object.keys(overrides).length > 0) {

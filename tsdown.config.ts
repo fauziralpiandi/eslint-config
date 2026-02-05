@@ -16,6 +16,6 @@ export default defineConfig({
     'eslint-plugin-tailwindcss',
     'eslint-plugin-unicorn',
     'globals',
-    'typescript-eslint',
-  ],
+    'typescript-eslint'
+  ]
 });

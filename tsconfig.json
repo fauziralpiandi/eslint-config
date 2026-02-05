@@ -2,6 +2,7 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "noEmit": true,

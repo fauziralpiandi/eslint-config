@@ -1,3 +1,7 @@
-import config from './dist/index.mjs';
+import config from '@fauziralpiandi/eslint-config';
 
-export default config();
+export default config({
+  perfectionist: true,
+  unicorn: true,
+  strict: true
+});

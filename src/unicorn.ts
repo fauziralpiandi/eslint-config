@@ -18,6 +18,7 @@ export function unicorn(): Linter.Config[] {
       rules: {
         ...recommended.rules,
         'unicorn/filename-case': 'off',
+        'unicorn/no-nested-ternary': 'off',
         'unicorn/no-array-reduce': 'off',
         'unicorn/no-null': 'off',
         'unicorn/prevent-abbreviations': 'off'

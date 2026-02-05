@@ -1,6 +1,6 @@
 # @fauziralpiandi/eslint-config
 
-Personal ESLint config. It's opinionated and handles pretty much everything for me.
+Personal ESLint baseline for my own tooling. It's focused on correctness with a few optional extras; if you want to try it, feel free.
 
 ## Install
 
@@ -16,18 +16,26 @@ import config from '@fauziralpiandi/eslint-config';
 export default config({
   ignores: [],
   overrides: {}
+  // perfectionist: true,
+  // strict: true,
+  // unicorn: true
 });
 ```
 
 ## What's in here?
 
-It auto-detects your project setup and applies rules accordingly:
+Minimal, logic-focused baseline that works across projects:
 
 - **ESLint 9** modern flat config.
-- **TypeScript** with type-checking enabled.
-- **React** support (Hooks, Refresh, A11y).
-- **Stylistic, Unicorn, & Perfectionist** for best practices.
-- **Tailwind & Vitest** support.
+- **Core correctness rules** from `@eslint/js` recommended.
+- **TypeScript** baseline rules, auto-upgrade to type-checked when `tsconfig` is present.
+- **React** rules auto-enabled when `react` is detected (a11y only with `react-dom`, refresh only with Vite/React Refresh).
+
+Optional flags:
+
+- `perfectionist: true` to enable `eslint-plugin-perfectionist`
+- `strict: true` to tighten JS rules and use `strictTypeChecked` when `tsconfig` is present
+- `unicorn: true` to enable `eslint-plugin-unicorn`
 
 ## License
 
