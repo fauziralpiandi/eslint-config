@@ -14,8 +14,9 @@ pnpm add -D @fauziralpiandi/eslint-config
 import config from '@fauziralpiandi/eslint-config';
 
 export default config({
-  ignores: [],
-  overrides: {}
+  // ignores: [],
+  // overrides: {},
+  // env: 'node',
   // perfectionist: true,
   // strict: true,
   // unicorn: true
@@ -30,11 +31,13 @@ Minimal, logic-focused baseline that works across projects:
 - **Core correctness rules** from `@eslint/js` recommended.
 - **TypeScript** baseline rules, auto-upgrade to type-checked when `tsconfig` is present.
 - **React** rules auto-enabled when `react` is detected (a11y only with `react-dom`, refresh only with Vite/React Refresh).
+- **Next.js** recommended + core web vitals rules auto-enabled when `next` and `@next/eslint-plugin-next` are detected.
 
 Optional flags:
 
+- `env: 'browser' | 'node' | 'both'` to set global environments (default: `both`, applies to JS and React configs).
 - `perfectionist: true` to enable `eslint-plugin-perfectionist`
-- `strict: true` to tighten JS rules and use `strictTypeChecked` when `tsconfig` is present
+- `strict: true` to tighten JS rules (warn → error) and use `strictTypeChecked` when `tsconfig` is present
 - `unicorn: true` to enable `eslint-plugin-unicorn`
 
 ## License

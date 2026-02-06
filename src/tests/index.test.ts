@@ -2,6 +2,7 @@ import type { Linter } from 'eslint';
 import { describe, expect, it, vi } from 'vitest';
 
 import config from '../index.js';
+import * as nextModule from '../next.js';
 import * as utils from '../utils.js';
 
 vi.mock('../utils.js', () => ({
@@ -9,7 +10,24 @@ vi.mock('../utils.js', () => ({
   hasTsconfig: vi.fn()
 }));
 
+vi.mock('../next.js', () => ({
+  nextjs: vi.fn(() => [{ name: 'config/nextjs/mock' }])
+}));
+
 describe('config factory', () => {
+  it('should warn when next is detected without the plugin', () => {
+    vi.mocked(utils.isPackageExists).mockImplementation(
+      (pkg) => pkg === 'next'
+    );
+    vi.mocked(utils.hasTsconfig).mockReturnValue(false);
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    config();
+
+    expect(warnSpy).toHaveBeenCalledOnce();
+    warnSpy.mockRestore();
+  });
   it('should merge global ignores correctly', () => {
     const customIgnore = '**/my-custom-ignore';
 
@@ -137,6 +155,83 @@ describe('config factory', () => {
     );
 
     expect(hasRefresh).toBeTruthy();
+  });
+
+  it('should include nextjs configs only when next and plugin exist', () => {
+    vi.mocked(utils.isPackageExists).mockImplementation(
+      (pkg) => pkg === 'next' || pkg === '@next/eslint-plugin-next'
+    );
+    vi.mocked(utils.hasTsconfig).mockReturnValue(false);
+
+    const configs = config();
+    const hasNext = configs.some((c) => c.name?.includes('nextjs'));
+
+    expect(nextModule.nextjs).toHaveBeenCalled();
+    expect(hasNext).toBeTruthy();
+  });
+
+  it('should enable react-refresh rules when refresh tooling exists', () => {
+    vi.mocked(utils.isPackageExists).mockImplementation(
+      (pkg) => pkg === 'react' || pkg === '@vitejs/plugin-react'
+    );
+    vi.mocked(utils.hasTsconfig).mockReturnValue(false);
+
+    const configs = config();
+    const reactRules = configs.find(
+      (c) => c.name === 'config/react/rules'
+    )?.rules;
+
+    expect(reactRules?.['react-refresh/only-export-components']).toBeTruthy();
+  });
+
+  it('should apply node globals when env is node', () => {
+    vi.mocked(utils.isPackageExists).mockReturnValue(false);
+    vi.mocked(utils.hasTsconfig).mockReturnValue(false);
+
+    const configs = config({ env: 'node' });
+    const jsSetup = configs.find(
+      (c) => c.name === 'config/javascript/setup'
+    )?.languageOptions;
+
+    expect(
+      Object.prototype.hasOwnProperty.call(jsSetup?.globals ?? {}, 'process')
+    ).toBe(true);
+    const nodeGlobals = (jsSetup?.globals ?? {}) as Record<string, unknown>;
+    expect(nodeGlobals.window).toBeUndefined();
+  });
+
+  it('should apply browser globals when env is browser', () => {
+    vi.mocked(utils.isPackageExists).mockReturnValue(false);
+    vi.mocked(utils.hasTsconfig).mockReturnValue(false);
+
+    const configs = config({ env: 'browser' });
+    const jsSetup = configs.find(
+      (c) => c.name === 'config/javascript/setup'
+    )?.languageOptions;
+
+    expect(
+      Object.prototype.hasOwnProperty.call(jsSetup?.globals ?? {}, 'window')
+    ).toBe(true);
+    const browserGlobals = (jsSetup?.globals ?? {}) as Record<string, unknown>;
+    expect(browserGlobals.process).toBeUndefined();
+  });
+
+  it('should apply env globals for react config', () => {
+    vi.mocked(utils.isPackageExists).mockImplementation(
+      (pkg) => pkg === 'react'
+    );
+    vi.mocked(utils.hasTsconfig).mockReturnValue(false);
+
+    const configs = config({ env: 'node' });
+    const reactSetup = configs.find(
+      (c) => c.name === 'config/react/setup'
+    )?.languageOptions;
+
+    expect(
+      Object.prototype.hasOwnProperty.call(reactSetup?.globals ?? {}, 'process')
+    ).toBe(true);
+    const reactGlobals = (reactSetup?.globals ?? {}) as Record<string, unknown>;
+    expect(reactGlobals.window).toBeUndefined();
   });
 
   it('should include unicorn configs when enabled', () => {

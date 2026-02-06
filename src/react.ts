@@ -8,20 +8,43 @@ import pluginReactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 
 import { GLOB } from './glob.js';
+import { filterRuleOverrides } from './rules.js';
 
 interface ReactOptions {
+  env: 'browser' | 'node' | 'both';
   includeA11y: boolean;
   includeRefresh: boolean;
 }
 
 export function react(options: ReactOptions): Linter.Config[] {
+  const envGlobals =
+    options.env === 'browser'
+      ? globals.browser
+      : options.env === 'node'
+        ? globals.node
+        : { ...globals.browser, ...globals.node };
+  const baseRules: Linter.RulesRecord = {
+    ...pluginReact.configs.recommended.rules,
+    ...pluginReact.configs['jsx-runtime'].rules,
+    ...pluginReactHooks.configs.recommended.rules,
+    ...(options.includeA11y ? pluginJsxA11y.configs.recommended.rules : {}),
+    ...(options.includeRefresh
+      ? pluginReactRefresh.configs.recommended.rules
+      : {})
+  };
+
+  const overrideRules = filterRuleOverrides(baseRules, {
+    'react/prop-types': 'off',
+    'react/self-closing-comp': 'warn'
+  });
+
   return [
     {
       name: 'config/react/setup',
       files: GLOB.REACT,
       languageOptions: {
         globals: {
-          ...globals.browser
+          ...envGlobals
         },
         parserOptions: {
           ecmaFeatures: {
@@ -51,12 +74,8 @@ export function react(options: ReactOptions): Linter.Config[] {
       name: 'config/react/rules',
       files: GLOB.REACT,
       rules: {
-        ...pluginReact.configs.recommended.rules,
-        ...pluginReact.configs['jsx-runtime'].rules,
-        ...pluginReactHooks.configs.recommended.rules,
-        ...(options.includeA11y ? pluginJsxA11y.configs.recommended.rules : {}),
-        'react/prop-types': 'off',
-        'react/self-closing-comp': 'warn'
+        ...baseRules,
+        ...overrideRules
       }
     }
   ];
