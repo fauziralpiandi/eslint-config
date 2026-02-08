@@ -60,11 +60,32 @@ export function isPackageAvailable(name: string): boolean {
   }
 }
 
+type TypescriptEslintModule = typeof import("typescript-eslint");
+
+function hasProperty(
+  value: unknown,
+  key: string
+): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && key in value;
+}
+
+function isTypescriptEslintModule(
+  value: unknown
+): value is TypescriptEslintModule {
+  return (
+    hasProperty(value, "configs") &&
+    hasProperty(value, "parser") &&
+    hasProperty(value, "plugin")
+  );
+}
+
 export function loadTypescriptEslint():
   | typeof import("typescript-eslint")
   | null {
   try {
-    return require("typescript-eslint") as typeof import("typescript-eslint");
+    const tseslint: unknown = require("typescript-eslint");
+
+    return isTypescriptEslintModule(tseslint) ? tseslint : null;
   } catch {
     return null;
   }

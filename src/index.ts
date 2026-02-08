@@ -10,17 +10,18 @@ function config(
 ): ConfigArray {
   const {
     env,
-    ignores = [...DEFAULT_IGNORES],
+    ignores = [],
     strict = false,
     overrides = []
   } = options;
+  const mergedIgnores = [...DEFAULT_IGNORES, ...ignores];
 
   const mergedConfigs: Config[] = [
     {
       name: "@fauziralpiandi/eslint-config/global-ignores",
-      ignores
+      ignores: mergedIgnores
     },
-    ...javascriptConfig({ env }),
+    ...javascriptConfig({ env, strict }),
     ...typescriptConfig({ env, strict }),
     ...overrides
   ];

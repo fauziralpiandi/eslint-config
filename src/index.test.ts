@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import config, { type Config } from "./index.js";
+import { DEFAULT_IGNORES } from "./shared/glob.js";
 
 type ConfigWithLanguageOptions = Config & {
   languageOptions?: {
@@ -12,6 +13,7 @@ type ConfigWithLanguageOptions = Config & {
       project?: string[];
     };
   };
+  rules?: Record<string, unknown>;
 };
 
 function findConfig(
@@ -21,6 +23,18 @@ function findConfig(
   return configs.find((cfg) => cfg.name?.includes(nameFragment)) as
     | ConfigWithLanguageOptions
     | undefined;
+}
+
+function getRuleValue(configs: Config[], ruleName: string): unknown {
+  let value: unknown;
+
+  for (const config of configs as ConfigWithLanguageOptions[]) {
+    if (config.rules && ruleName in config.rules) {
+      value = config.rules[ruleName];
+    }
+  }
+
+  return value;
 }
 
 function withTempDir<T>(
@@ -134,6 +148,78 @@ describe("typescriptConfig", () => {
       expect(hasTypeChecked).toBe(true);
     });
   });
+
+  it("downgrades no-unsafe rules to warn when strict is false", async () => {
+    const typescriptConfig = await loadTypescriptConfig();
+
+    withTempDir({ "tsconfig.json": "{}" }, () => {
+      const configs = typescriptConfig({});
+      const unsafeConfig = findConfig(configs, "/unsafe-warn");
+
+      expect(
+        unsafeConfig?.rules?.["@typescript-eslint/no-unsafe-assignment"]
+      ).toBe("warn");
+      expect(
+        unsafeConfig?.rules?.["@typescript-eslint/no-unsafe-member-access"]
+      ).toBe("warn");
+    });
+  });
+
+  it("keeps no-unsafe rules as error when strict is true", async () => {
+    const typescriptConfig = await loadTypescriptConfig();
+
+    withTempDir({ "tsconfig.json": "{}" }, () => {
+      const configs = typescriptConfig({ strict: true });
+      const unsafeConfig = findConfig(configs, "/unsafe-warn");
+
+      expect(unsafeConfig).toBeUndefined();
+      expect(
+        getRuleValue(configs, "@typescript-eslint/no-unsafe-assignment")
+      ).toBe("error");
+    });
+  });
+
+  it("adds strict typescript rules when strict is true", async () => {
+    const typescriptConfig = await loadTypescriptConfig();
+
+    withTempDir({ "tsconfig.json": "{}" }, () => {
+      const configs = typescriptConfig({ strict: true });
+      const strictConfig = findConfig(configs, "/typescript/strict");
+
+      expect(strictConfig?.rules?.["no-eval"]).toBe("error");
+      expect(strictConfig?.rules?.["no-script-url"]).toBe("error");
+      expect(
+        strictConfig?.rules?.["@typescript-eslint/no-unsafe-type-assertion"]
+      ).toBe("error");
+    });
+  });
+
+  it("uses untyped strict rules when no tsconfig is present", async () => {
+    const typescriptConfig = await loadTypescriptConfig();
+
+    withTempDir({}, () => {
+      const configs = typescriptConfig({ strict: true });
+      const strictConfig = findConfig(configs, "/typescript/strict");
+
+      expect(strictConfig?.rules?.["no-implied-eval"]).toBe("error");
+      expect(
+        strictConfig?.rules?.["@typescript-eslint/no-unsafe-type-assertion"]
+      ).toBeUndefined();
+    });
+  });
+
+  it("limits browser-only strict rules when env is node", async () => {
+    const typescriptConfig = await loadTypescriptConfig();
+
+    withTempDir({ "tsconfig.json": "{}" }, () => {
+      const configs = typescriptConfig({ strict: true, env: "node" });
+      const strictConfig = findConfig(configs, "/typescript/strict");
+
+      expect(strictConfig?.rules?.["no-process-exit"]).toBe("error");
+      expect(strictConfig?.rules?.["no-script-url"]).toBeUndefined();
+      expect(strictConfig?.rules?.["no-alert"]).toBeUndefined();
+    });
+  });
 });
 
 describe("config", () => {
@@ -143,6 +229,21 @@ describe("config", () => {
     expect(result[0]?.name).toBe(
       "@fauziralpiandi/eslint-config/global-ignores"
     );
+  });
+
+  it("merges default ignores with user ignores", () => {
+    const customIgnores = ["**/custom/**"];
+    const result = config({ ignores: customIgnores });
+    const ignores = result[0]?.ignores ?? [];
+
+    expect(ignores.slice(0, DEFAULT_IGNORES.length)).toEqual(DEFAULT_IGNORES);
+    expect(ignores.slice(DEFAULT_IGNORES.length)).toEqual(customIgnores);
+  });
+
+  it("keeps default ignores when user ignores is empty", () => {
+    const result = config({ ignores: [] });
+
+    expect(result[0]?.ignores).toEqual(DEFAULT_IGNORES);
   });
 
   it("appends user configs at the end", () => {
@@ -180,5 +281,30 @@ describe("config", () => {
 
     expect("window" in globals).toBe(true);
     expect("process" in globals).toBe(false);
+  });
+
+  it("adds strict javascript rules when strict is true", () => {
+    const result = config({ strict: true });
+    const strictConfig = findConfig(result, "/javascript/strict");
+
+    expect(strictConfig?.rules?.["no-eval"]).toBe("error");
+    expect(strictConfig?.rules?.["no-script-url"]).toBe("error");
+    expect(strictConfig?.rules?.["no-process-exit"]).toBe("error");
+  });
+
+  it("limits browser-only strict rules when env is node", () => {
+    const result = config({ strict: true, env: "node" });
+    const strictConfig = findConfig(result, "/javascript/strict");
+
+    expect(strictConfig?.rules?.["no-process-exit"]).toBe("error");
+    expect(strictConfig?.rules?.["no-script-url"]).toBeUndefined();
+    expect(strictConfig?.rules?.["no-alert"]).toBeUndefined();
+  });
+
+  it("skips strict javascript rules when strict is false", () => {
+    const result = config({ strict: false });
+    const strictConfig = findConfig(result, "/javascript/strict");
+
+    expect(strictConfig).toBeUndefined();
   });
 });
