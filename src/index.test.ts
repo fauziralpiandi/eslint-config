@@ -3,8 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
-import config, { type Config } from "./index.js";
-import { DEFAULT_IGNORES } from "./shared/glob.js";
+import config, { type Config } from "../src";
+import { DEFAULT_IGNORES } from "./shared/glob";
 
 type ConfigWithLanguageOptions = Config & {
   languageOptions?: {
@@ -23,18 +23,6 @@ function findConfig(
   return configs.find((cfg) => cfg.name?.includes(nameFragment)) as
     | ConfigWithLanguageOptions
     | undefined;
-}
-
-function getRuleValue(configs: Config[], ruleName: string): unknown {
-  let value: unknown;
-
-  for (const config of configs as ConfigWithLanguageOptions[]) {
-    if (config.rules && ruleName in config.rules) {
-      value = config.rules[ruleName];
-    }
-  }
-
-  return value;
 }
 
 function withTempDir<T>(
@@ -61,7 +49,7 @@ function withTempDir<T>(
 async function loadTypescriptConfig() {
   vi.resetModules();
 
-  const { typescriptConfig } = await import("./config/typescript.js");
+  const { typescriptConfig } = await import("./config/typescript");
 
   return typescriptConfig;
 }
@@ -69,10 +57,10 @@ async function loadTypescriptConfig() {
 describe("typescriptConfig", () => {
   it("skips when typescript is not available", async () => {
     vi.resetModules();
-    vi.doMock("./shared/utils.js", async () => {
+    vi.doMock("./shared/utils", async () => {
       const actual =
-        await vi.importActual<typeof import("./shared/utils.js")>(
-          "./shared/utils.js"
+        await vi.importActual<typeof import("./shared/utils")>(
+          "./shared/utils"
         );
 
       return {
@@ -82,12 +70,12 @@ describe("typescriptConfig", () => {
       };
     });
 
-    const { typescriptConfig } = await import("./config/typescript.js");
+    const { typescriptConfig } = await import("./config/typescript");
     const configs = typescriptConfig({});
 
     expect(configs).toEqual([]);
 
-    vi.doUnmock("./shared/utils.js");
+    vi.doUnmock("./shared/utils");
     vi.resetModules();
   });
 
@@ -149,75 +137,65 @@ describe("typescriptConfig", () => {
     });
   });
 
-  it("downgrades no-unsafe rules to warn when strict is false", async () => {
+  it("forces base configs when project is false", async () => {
     const typescriptConfig = await loadTypescriptConfig();
 
     withTempDir({ "tsconfig.json": "{}" }, () => {
-      const configs = typescriptConfig({});
-      const unsafeConfig = findConfig(configs, "/unsafe-warn");
+      const configs = typescriptConfig({ project: false });
+      const hasBase = configs.some((config) =>
+        config.name?.includes("/base-0")
+      );
+      const hasTypeChecked = configs.some((config) =>
+        config.name?.includes("/type-checked-0")
+      );
+      const setup = findConfig(configs, "/setup");
 
-      expect(
-        unsafeConfig?.rules?.["@typescript-eslint/no-unsafe-assignment"]
-      ).toBe("warn");
-      expect(
-        unsafeConfig?.rules?.["@typescript-eslint/no-unsafe-member-access"]
-      ).toBe("warn");
+      expect(hasBase).toBe(true);
+      expect(hasTypeChecked).toBe(false);
+      expect(setup?.languageOptions?.parserOptions).toBeUndefined();
     });
   });
 
-  it("keeps no-unsafe rules as error when strict is true", async () => {
-    const typescriptConfig = await loadTypescriptConfig();
-
-    withTempDir({ "tsconfig.json": "{}" }, () => {
-      const configs = typescriptConfig({ strict: true });
-      const unsafeConfig = findConfig(configs, "/unsafe-warn");
-
-      expect(unsafeConfig).toBeUndefined();
-      expect(
-        getRuleValue(configs, "@typescript-eslint/no-unsafe-assignment")
-      ).toBe("error");
-    });
-  });
-
-  it("adds strict typescript rules when strict is true", async () => {
-    const typescriptConfig = await loadTypescriptConfig();
-
-    withTempDir({ "tsconfig.json": "{}" }, () => {
-      const configs = typescriptConfig({ strict: true });
-      const strictConfig = findConfig(configs, "/typescript/strict");
-
-      expect(strictConfig?.rules?.["no-eval"]).toBe("error");
-      expect(strictConfig?.rules?.["no-script-url"]).toBe("error");
-      expect(
-        strictConfig?.rules?.["@typescript-eslint/no-unsafe-type-assertion"]
-      ).toBe("error");
-    });
-  });
-
-  it("uses untyped strict rules when no tsconfig is present", async () => {
+  it("uses explicit project paths for type-checked configs", async () => {
     const typescriptConfig = await loadTypescriptConfig();
 
     withTempDir({}, () => {
-      const configs = typescriptConfig({ strict: true });
-      const strictConfig = findConfig(configs, "/typescript/strict");
+      const configs = typescriptConfig({ project: ["./tsconfig.json"] });
+      const hasTypeChecked = configs.some((config) =>
+        config.name?.includes("/type-checked-0")
+      );
+      const setup = findConfig(configs, "/setup");
 
-      expect(strictConfig?.rules?.["no-implied-eval"]).toBe("error");
-      expect(
-        strictConfig?.rules?.["@typescript-eslint/no-unsafe-type-assertion"]
-      ).toBeUndefined();
+      expect(hasTypeChecked).toBe(true);
+      expect(setup?.languageOptions?.parserOptions?.project).toEqual([
+        "./tsconfig.json"
+      ]);
     });
   });
 
-  it("limits browser-only strict rules when env is node", async () => {
+  it("adds stylistic configs when stylistic is true (base)", async () => {
+    const typescriptConfig = await loadTypescriptConfig();
+
+    withTempDir({}, () => {
+      const configs = typescriptConfig({ stylistic: true });
+      const hasStylistic = configs.some((config) =>
+        config.name?.includes("/stylistic-base-0")
+      );
+
+      expect(hasStylistic).toBe(true);
+    });
+  });
+
+  it("adds stylistic configs when stylistic is true (type-checked)", async () => {
     const typescriptConfig = await loadTypescriptConfig();
 
     withTempDir({ "tsconfig.json": "{}" }, () => {
-      const configs = typescriptConfig({ strict: true, env: "node" });
-      const strictConfig = findConfig(configs, "/typescript/strict");
+      const configs = typescriptConfig({ stylistic: true });
+      const hasStylistic = configs.some((config) =>
+        config.name?.includes("/stylistic-type-checked-0")
+      );
 
-      expect(strictConfig?.rules?.["no-process-exit"]).toBe("error");
-      expect(strictConfig?.rules?.["no-script-url"]).toBeUndefined();
-      expect(strictConfig?.rules?.["no-alert"]).toBeUndefined();
+      expect(hasStylistic).toBe(true);
     });
   });
 });
@@ -253,13 +231,13 @@ describe("config", () => {
     expect(result.at(-1)).toEqual(userConfig);
   });
 
-  it("defaults env to both (node + browser)", () => {
+  it("defaults env to node", () => {
     const result = config();
     const setup = findConfig(result, "/javascript/setup");
 
     const globals = setup?.languageOptions?.globals ?? {};
 
-    expect("window" in globals).toBe(true);
+    expect("window" in globals).toBe(false);
     expect("process" in globals).toBe(true);
   });
 
@@ -281,30 +259,5 @@ describe("config", () => {
 
     expect("window" in globals).toBe(true);
     expect("process" in globals).toBe(false);
-  });
-
-  it("adds strict javascript rules when strict is true", () => {
-    const result = config({ strict: true });
-    const strictConfig = findConfig(result, "/javascript/strict");
-
-    expect(strictConfig?.rules?.["no-eval"]).toBe("error");
-    expect(strictConfig?.rules?.["no-script-url"]).toBe("error");
-    expect(strictConfig?.rules?.["no-process-exit"]).toBe("error");
-  });
-
-  it("limits browser-only strict rules when env is node", () => {
-    const result = config({ strict: true, env: "node" });
-    const strictConfig = findConfig(result, "/javascript/strict");
-
-    expect(strictConfig?.rules?.["no-process-exit"]).toBe("error");
-    expect(strictConfig?.rules?.["no-script-url"]).toBeUndefined();
-    expect(strictConfig?.rules?.["no-alert"]).toBeUndefined();
-  });
-
-  it("skips strict javascript rules when strict is false", () => {
-    const result = config({ strict: false });
-    const strictConfig = findConfig(result, "/javascript/strict");
-
-    expect(strictConfig).toBeUndefined();
   });
 });

@@ -11,7 +11,7 @@ const ENV_MAP: Record<EnvName, Record<string, boolean>> = {
   worker: globals.worker
 };
 
-const DEFAULT_ENV: EnvName[] = ["node", "browser"];
+const DEFAULT_ENV: EnvName[] = ["node"];
 
 export function resolveGlobals(env?: EnvOption): Record<string, boolean> {
   const resolved = normalizeEnv(env);
