@@ -1,6 +1,6 @@
 # @fauziralpiandi/eslint-config
 
-Personal ESLint baseline for my own tooling. It's focused on correctness with a few optional extras; if you want to try it, feel free.
+Personal ESLint baseline for my own projects. Shared here in case it's useful.
 
 ## Install
 
@@ -8,37 +8,63 @@ Personal ESLint baseline for my own tooling. It's focused on correctness with a 
 pnpm add -D @fauziralpiandi/eslint-config
 ```
 
+> [!NOTE]
+>
+> Requires `eslint` ^9.
+> TypeScript configs require `typescript` >=5.
+
 ## Usage
 
 ```js
-import config from '@fauziralpiandi/eslint-config';
+import config from "@fauziralpiandi/eslint-config";
 
 export default config({
+  // env: "node" | "browser" | "worker",
   // ignores: [],
-  // overrides: {},
-  // env: 'node',
-  // perfectionist: true,
-  // strict: true,
-  // unicorn: true
+  // strict: false,
+  // overrides: []
 });
 ```
 
-## What's in here?
+Optional: append extra configs if needed.
 
-Minimal, logic-focused baseline that works across projects:
+```js
+import config from "@fauziralpiandi/eslint-config";
 
-- **ESLint 9** modern flat config.
-- **Core correctness rules** from `@eslint/js` recommended.
-- **TypeScript** baseline rules, auto-upgrade to type-checked when `tsconfig` is present.
-- **React** rules auto-enabled when `react` is detected (a11y only with `react-dom`, refresh only with Vite/React Refresh).
-- **Next.js** recommended + core web vitals rules auto-enabled when `next` and `@next/eslint-plugin-next` are detected.
+export default config(
+  {
+    env: "node"
+  },
+  {
+    name: "project/custom",
+    rules: {
+      "no-console": "warn"
+    }
+  }
+);
+```
 
-Optional flags:
+## Contents
 
-- `env: 'browser' | 'node' | 'both'` to set global environments (default: `both`, applies to JS and React configs).
-- `perfectionist: true` to enable `eslint-plugin-perfectionist`
-- `strict: true` to tighten JS rules (warn → error) and use `strictTypeChecked` when `tsconfig` is present
-- `unicorn: true` to enable `eslint-plugin-unicorn`
+- ESLint 9 flat config.
+- `@eslint/js` recommended rules.
+- TypeScript configs from `typescript-eslint` when `typescript` is installed (skipped otherwise).
+- Type-checked configs when a `tsconfig*.json` (including `.jsonc`/`.json5`) file exists in the project root.
+
+## Options
+
+- `env`: `"node" | "browser" | "worker" | Array<"node" | "browser" | "worker">`
+  Defaults to all. Applies globally to JS and TS configs.
+- `ignores`: `string[]`
+  Global ignore patterns. Defaults to a list of common build outputs and caches.
+- `strict`: `boolean`
+  Uses `typescript-eslint` strict configs when available (no JS strict preset applied).
+- `overrides`: `Config[]`
+  Additional flat configs inserted before any user-provided configs. The type can be imported from this package:
+
+  ```ts
+  import type { Config } from "@fauziralpiandi/eslint-config";
+  ```
 
 ## License
 

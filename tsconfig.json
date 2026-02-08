@@ -3,15 +3,17 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "noEmit": true,
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "ESNext",
-    "lib": ["ESNext", "DOM", "DOM.Iterable"]
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "types": ["node"]
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

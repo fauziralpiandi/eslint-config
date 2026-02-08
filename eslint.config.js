@@ -1,7 +1,6 @@
-import config from '@fauziralpiandi/eslint-config';
+import config from "@fauziralpiandi/eslint-config";
 
 export default config({
-  perfectionist: true,
-  unicorn: true,
+  env: "node",
   strict: true
 });
