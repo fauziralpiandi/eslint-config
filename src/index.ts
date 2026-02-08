@@ -1,8 +1,8 @@
 import { defineConfig } from "eslint/config";
-import { javascriptConfig } from "./config/javascript.js";
-import { typescriptConfig } from "./config/typescript.js";
-import { DEFAULT_IGNORES } from "./shared/glob.js";
-import type { Config, ConfigArray, ConfigOptions } from "./shared/types.js";
+import { javascriptConfig } from "./config/javascript";
+import { typescriptConfig } from "./config/typescript";
+import { DEFAULT_IGNORES } from "./shared/glob";
+import type { Config, ConfigArray, ConfigOptions } from "./shared/types";
 
 function config(
   options: ConfigOptions = {},
@@ -12,6 +12,8 @@ function config(
     env,
     ignores = [],
     strict = false,
+    stylistic = false,
+    project,
     overrides = []
   } = options;
   const mergedIgnores = [...DEFAULT_IGNORES, ...ignores];
@@ -22,7 +24,7 @@ function config(
       ignores: mergedIgnores
     },
     ...javascriptConfig({ env, strict }),
-    ...typescriptConfig({ env, strict }),
+    ...typescriptConfig({ env, strict, stylistic, project }),
     ...overrides
   ];
 
@@ -36,4 +38,4 @@ function config(
 
 export { config };
 export default config;
-export type { Config, ConfigOptions } from "./shared/types.js";
+export type { Config, ConfigOptions } from "./shared/types";
