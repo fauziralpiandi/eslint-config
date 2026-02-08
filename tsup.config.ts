@@ -6,6 +6,6 @@ export default defineConfig({
   target: "es2022",
   clean: true,
   dts: true,
-  sourcemap: false,
+  sourcemap: true,
   external: ["@eslint/js", "globals", "typescript-eslint"]
 });
